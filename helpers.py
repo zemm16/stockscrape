@@ -1,4 +1,7 @@
 #Define all variables. Is there a better way to do this?
+import pandas as pd
+
+
 def define_metrics():
     industry = []
     market_cap = []
