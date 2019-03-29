@@ -12,6 +12,7 @@ import pandas as pd
 import pandas_datareader as web
 import datetime
 import helpers
+import stock_analysis
 
 ## Methods to use in main
 
@@ -149,7 +150,6 @@ def main_webscrape(symbols_sample, names_sample):
     start = time.time()
     current_date = str(int(time.time()))
     for symbol in symbols_sample:
-
         table_dict = extract_page_info(url_dict, symbol)
         extract_profile_info(table_dict['profile'], industry, ceo, ceo_pay, pres, pres_pay, counter)
         extract_info(table_dict['summary'], metric_summary,counter)
@@ -171,13 +171,20 @@ def main_webscrape(symbols_sample, names_sample):
         print(len(industry))
         print(len(metric_balance['Long Term Debt']))
         print(len(metric_income['Non Recurring']))
+        # except:
+        #     print("skipping stock")
+        #     symbols_sample.remove(symbol)
+        #     names_sample.pop(counter-1)
+        #     recent_price.append(None)
+        #     counter+=1
+
     stocks_intro = {'name': names_sample,'ticker':symbols_sample,'industry':industry, 'ceo': ceo, 'ceo pay':ceo_pay,
               'president':pres, 'pres_pay':pres_pay, 'EPS Present Year': eps1, 'EPS Last Year':eps2, 
                 'EPS 2 Years Prior': eps3, 'EPS 3 Years Prior':eps4, 'Price':recent_price}
     stocks_dict = {**stocks_intro, **metric_summary, **metric_statistics, **metric_income, **metric_balance, **metric_cash}
     stocks_df = pd.DataFrame.from_dict(stocks_dict)
-    #stocks_df.to_csv('stocks' + str(datetime.date.today()) + '.csv')
-    #history_df.to_csv('history' + str(datetime.date.today()) + '.csv')
+    stocks_df.to_csv('stocks' + str(datetime.date.today()) + '.csv')
+    history_df.to_csv('history' + str(datetime.date.today()) + '.csv')
 
     end = time.time()
     print("My program took " + str(end - start) + "to run")
@@ -194,7 +201,6 @@ metric_statistics, metric_cash, url_dict = helpers.define_metrics()
 
 symbols, names = extract_tickers(root_url, first_page)
 
-print(sys.argv[1])
 
 if type(sys.argv[1]):
 	symbols_sample = symbols[0:int(sys.argv[1])]
@@ -204,3 +210,4 @@ else:
 	names_sample = names
 
 stocks_df, history_df = main_webscrape(symbols_sample, names_sample)
+stock_analysis.analysis()
