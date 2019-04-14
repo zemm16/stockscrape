@@ -111,6 +111,8 @@ def extract_history(symbol,history_df,counter,eps1, recent_price ):
     f_df['symbol'] = symbol
     if len(eps1) == counter + 1:
         recent_price.append(f_df['close'].iloc[-1])
+    elif len(recent_price) < counter+1:
+    	recent_price.append(None)
     return history_df.append(f_df), recent_price  
 
 
@@ -150,33 +152,37 @@ def main_webscrape(symbols_sample, names_sample):
     start = time.time()
     current_date = str(int(time.time()))
     for symbol in symbols_sample:
-        table_dict = extract_page_info(url_dict, symbol)
-        extract_profile_info(table_dict['profile'], industry, ceo, ceo_pay, pres, pres_pay, counter)
-        extract_info(table_dict['summary'], metric_summary,counter)
-        extract_info(table_dict['stat'], metric_statistics,counter)
-        extract_info(table_dict['income'], metric_income,counter)
-        extract_info(table_dict['balance'], metric_balance, counter)
-        extract_eps(table_dict['analysis'], eps1,eps2,eps3,eps4, counter)
-        history_df,recent_price = extract_history(symbol,history_df,counter,eps1, recent_price)
-        extract_info(table_dict['cash'], metric_cash, counter)
-        counter+=1
-        print('stock: ' + symbol)
-        print('stocks analyzed: ' + str(counter))
-        print(len(recent_price))
-        print(len(metric_summary['Market Cap']))
-        print(len(metric_statistics['Price/Sales (ttm)']))
-        print(len(ceo_pay))
-        print(len(pres))
-        print(len(eps1))
-        print(len(industry))
-        print(len(metric_balance['Long Term Debt']))
-        print(len(metric_income['Non Recurring']))
-        # except:
-        #     print("skipping stock")
-        #     symbols_sample.remove(symbol)
-        #     names_sample.pop(counter-1)
-        #     recent_price.append(None)
-        #     counter+=1
+    	try:
+	        table_dict = extract_page_info(url_dict, symbol)
+	        extract_profile_info(table_dict['profile'], industry, ceo, ceo_pay, pres, pres_pay, counter)
+	        extract_info(table_dict['summary'], metric_summary,counter)
+	        extract_info(table_dict['stat'], metric_statistics,counter)
+	        extract_info(table_dict['income'], metric_income,counter)
+	        extract_info(table_dict['balance'], metric_balance, counter)
+	        extract_eps(table_dict['analysis'], eps1,eps2,eps3,eps4, counter)
+	        history_df,recent_price = extract_history(symbol,history_df,counter,eps1, recent_price)
+	        extract_info(table_dict['cash'], metric_cash, counter)
+	        counter+=1
+	        print('stock: ' + symbol)
+	        print('stocks analyzed: ' + str(counter))
+	        print(len(recent_price))
+	        print(len(metric_summary['Market Cap']))
+	        print(len(metric_statistics['Price/Sales (ttm)']))
+	        print(len(ceo_pay))
+	        print(len(pres))
+	        print(len(eps1))
+	        print(len(industry))
+	        print(len(metric_balance['Long Term Debt']))
+	        print(len(metric_income['Non Recurring']))
+    	except:
+        	print("skipping stock")
+        	symbols_sample.remove(symbol)
+        	names_sample.pop(counter-1)
+        	recent_price.append(None)
+        	print("The new recent_price:")
+        	print(len(recent_price))
+        	counter+=1
+
 
     stocks_intro = {'name': names_sample,'ticker':symbols_sample,'industry':industry, 'ceo': ceo, 'ceo pay':ceo_pay,
               'president':pres, 'pres_pay':pres_pay, 'EPS Present Year': eps1, 'EPS Last Year':eps2, 
@@ -202,7 +208,7 @@ metric_statistics, metric_cash, url_dict = helpers.define_metrics()
 symbols, names = extract_tickers(root_url, first_page)
 
 
-if type(sys.argv[1]):
+if len(sys.argv) > 1:
 	symbols_sample = symbols[0:int(sys.argv[1])]
 	names_sample = names[0:int(sys.argv[1])]
 else:
